@@ -314,20 +314,30 @@ bool QDomDocument::setContent(QFile* file, bool b, QString* s, int* i, int* i2)
 {
     if ( document )
     {
-        XMLError err = document->LoadFile(file->fileName().toLatin1());
-        if ( err == XML_NO_ERROR )
+        XMLError err = document->LoadFile(file->fileName().toUtf8());
+        if ( err == XML_SUCCESS )
         {
             return true;
         }
         else
         {
-            const char* err_str =  document->GetErrorStr1();
+            const char* err_str =  document->ErrorStr();
             if ( err_str != NULL )
                 s->fromLatin1(err_str);
-
-            //can't really implement line/col of err, since TinyXML2 doesn't seem to support that
+            
             if ( i )
-                *i = -1;
+            {
+                auto lineNum = document->GetLineNum();
+                if ( lineNum != 0 )
+                {
+                    *i = lineNum;
+                }
+                else
+                {
+                    *i = -1;
+                }
+            }
+            //can't really implement col of err, since TinyXML2 doesn't seem to support that
             if ( i2 )
                 *i2 = -1;
 
